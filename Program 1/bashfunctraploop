@@ -1,0 +1,22 @@
+#!/bin/bash
+trapfunc(){
+	echo 'SIGINT Received, running loop' 
+	loopfunc
+	exit 0
+}
+trap trapfunc SIGINT
+
+loopfunc ()
+{
+ for i in 9 0 1 2 8 7 6 3 4 5 6 
+ do
+ 	echo $(($i+4))
+ done
+}
+
+echo "Kill this script with CTRL+C"
+while [ 1 -eq 1 ]
+do
+ echo "nothing"
+ sleep 1
+done

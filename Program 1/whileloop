@@ -1,0 +1,8 @@
+#!/bin/bash
+i=0
+while [ $i -lt 10 ]
+do
+        echo -e "i = $i, not stopping yet"
+        i=$(($i + 1))
+done
+echo -e "Stopping, i = $i"

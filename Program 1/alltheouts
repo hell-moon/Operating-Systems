@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "fuckboii" 1>&2
+ls bitchboii 2>&1

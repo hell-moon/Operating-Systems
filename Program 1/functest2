@@ -1,0 +1,11 @@
+AddTwoNumbers() {
+  # Add two passed-in numbers together and store them in our global return variable _RET
+  _RET=$(expr $1 + $2)
+}
+# Call our function with the values passed into the script
+AddTwoNumbers $3 $4
+echo "The sum is: $_RET"
+$
+$
+$ functest2 0 0 6 11
+The sum is: 17

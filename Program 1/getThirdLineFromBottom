@@ -1,0 +1,21 @@
+#!/bin/bash
+# Write out the datafile
+echo abc > sorteddata$$
+echo 345 >> sorteddata$$
+echo 899 >> sorteddata$$
+echo 354 >> sorteddata$$
+echo 912 >> sorteddata$$
+echo 001 >> sorteddata$$
+echo ABC >> sorteddata$$
+echo 789 >> sorteddata$$
+
+# Get the number of lines in the datafile
+numLines=$(wc -l < sorteddata$$)
+echo "Third line of $numLines is:"
+
+# Sort the lines; get the last 3;
+#  get the 1st of the 3
+cat sorteddata$$ | sort -n | tail -n 3 | head -n 1
+
+# Remove our datafile
+rm -f sorteddata$$

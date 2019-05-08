@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "Enter in a string, then hit enter:"
+read myvar
+echo "You entered: $myvar"
+echo $myvar > "tempfilename$$"
+echo $myvar >> "tempfilename$$"
+echo $myvar >> "tempfilename$$"
+echo "The temp file contents are:"
+cat tempfilename$$
+echo "The first line of the file is:"
+read poop < tempfilename$$
+echo $poop
+read thisword otherstuff morestuff< "tempfilename$$"
+echo "First word of first line: \"$thisword\""
+echo "Rest of line: \"$otherstuff\""
+echo "rest of stuff: \"$morestuff\""
+rm -f "tempfilename$$"

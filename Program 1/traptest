@@ -1,0 +1,21 @@
+#!/bin/sh
+cleanup(){
+	rm -f $TMP 
+	echo 'SIGINT received: Deleting temp file then exiting!' 
+	exit 1
+}
+
+echo "Creating temporary file..."
+TMP="myCoolFilename$$"
+trap cleanup 1 2 3 6
+echo "FILE CONTENTS." > $TMP
+echo "Temp file name is $TMP and contains the contents:"
+cat $TMP
+while [ 1 -ne 2 ]
+do
+        echo "Never ending loop - hit CTRL+C to exit!"
+        sleep 1
+done
+
+
+
