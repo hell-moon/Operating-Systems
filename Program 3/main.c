@@ -9,12 +9,13 @@
 
 // function declarations
 char **getInputParsed(char **, char **, int *);
+char *replace_str(char *, char *, char *);
 
 int main()
 {
 	int exitStatus = 0; // default to 0, set exit value if exited normally, or set termination signal
 	int howExited = 0;  // default to 0, set to 0 if exited normally, 1 if terminated
-
+	pid_t doubledollar = getpid();
 	while (1) // infinite loop, will exit by typing 'exit' in prompt
 	{
 
@@ -189,9 +190,18 @@ char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 	while (token != NULL)
 	{
 		if (strcmp(token, "<") == 0)
-		{ // if input redirection found
+		{
+			// if input redirection found
 			// then the next token is the input file name
 			token = strtok(NULL, " ");
+			// search token for "$$", if found, replace with process id
+			if ((strstr(token, "$$")) != NULL)
+			{
+				int thisPid = getpid();
+				char pidstr[16];
+				sprintf(pidstr, "%d", thisPid);
+				token = replace_str(token, "$$", pidstr);
+			}
 			// allocate memory and copy input file name over
 			*inputFile = calloc(512, sizeof(char));
 			strcpy(*inputFile, token);
@@ -202,6 +212,14 @@ char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 		{ // else if output redirection found
 			// then the next token is the output file name
 			token = strtok(NULL, " ");
+			// search token for "$$", if found, replace with process id
+			if ((strstr(token, "$$")) != NULL)
+			{
+				int thisPid = getpid();
+				char pidstr[16];
+				sprintf(pidstr, "%d", thisPid);
+				token = replace_str(token, "$$", pidstr);
+			}
 			// allocate memory and copy output file name over
 			*outputFile = calloc(512, sizeof(char));
 			strcpy(*outputFile, token);
@@ -214,13 +232,46 @@ char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 			break;				 // & as a token will always be at end of command list, break from loop
 		}
 		else
-		{ // else has to be command or argument
+		{
+			// if reached this point, then has to be command or argument
+			// search token for "$$", if found, replace with process id
+			if ((strstr(token, "$$")) != NULL)
+			{
+				int thisPid = getpid();
+				char pidstr[16];
+				sprintf(pidstr, "%d", thisPid);
+				token = replace_str(token, "$$", pidstr);
+			}
+			// store token in parsed string
 			parsedString[counter] = token;
+			// if line starts with #, stop parsing and function returns pointer to null
+			if (((int)(*parsedString[0])) == '#')
+			{
+				break;
+			}
 			counter++;
 			token = strtok(NULL, " ");
 		}
 	}
+	// make sure parsed string ends with NULL
 	parsedString[counter] = NULL;
-
 	return parsedString;
+}
+
+// function to find '$$' in substring and replace with passed in pid in string
+// https://www.linuxquestions.org/questions/programming-9/replace-a-substring-with-another-string-in-c-170076/
+char *replace_str(char *str, char *orig, char *rep)
+{
+	static char buffer[4096];
+	char *p;
+
+	if (!(p = strstr(str, orig))) // Is 'orig' even in 'str'?
+		return str;
+
+	strncpy(buffer, str, p - str); // Copy characters from 'str' start to 'orig' st$
+	buffer[p - str] = '\0';
+
+	sprintf(buffer + (p - str), "%s%s", rep, p + strlen(orig));
+
+	return buffer;
 }
