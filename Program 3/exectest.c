@@ -89,6 +89,8 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/resource.h>
+
 // void catchSIGINT(int signo)
 // {
 // 	char *message = "Caught SIGINT, sleeping for 5 seconds\n";
@@ -131,46 +133,54 @@
 // 		pause();
 // }
 
-void catchSIGCHILD(int signo, siginfo_t *info, void* ignr)
+void catchSIGCHILD(int signo, siginfo_t *info, void *ignr)
 {
-// this function handles a SIGCHILD signal.  
-// when a child process terminates, this function gets called
-    printf("Signal originates from process %d\n",info->si_pid);
-
+	// this function handles a SIGCHILD signal.
+	// when a child process terminates, this function gets called
+	printf("Signal originates from process %d\n", info->si_pid);
+	fflush(stdout);
 }
 
 int main()
 {
+
 	int spawnpid;
 	int waitstatus;
 
-	struct sigaction SIGCHLD_action = {0};
+	struct sigaction act = {0};
 
-	SIGCHLD_action.sa_sigaction = catchSIGCHILD;
-	sigaddset(&SIGCHLD_action.sa_mask, SIGCHLD);	// blocks CHLD signal
-	SIGCHLD_action.sa_flags = 1;
+	act.sa_sigaction = catchSIGCHILD;
+	sigaddset(&act.sa_mask, SIGCHLD); // blocks CHLD signal
+	act.sa_flags = SA_SIGINFO;
 
-	sigaction(SIGCHLD, &SIGCHLD_action, NULL);
-
-	spawnpid = fork();
-
-	switch (spawnpid)
+	sigaction(SIGCHLD, &act, NULL);
+	int counter = 0;
+	while (counter < 10)
 	{
-	case 0:
-		// child process
-		printf("child process\n");
-		execlp("ls", "ls", "-a", NULL);
-		(exit);
-		break;
-	case -1:
-		// error
-		printf("error\n");
-		exit(5);
-		break;
-	default:
-		// parent process
-		printf("parent process, PID: %d\n", getpid());
-		waitpid(spawnpid, &waitstatus, 0);
-		break;
+		spawnpid = fork();
+
+		switch (spawnpid)
+		{
+		case 0:
+			// child process
+			printf("child process\n");
+			fflush(stdout);
+			// execlp("ls", "ls", "-a", NULL);
+			break;
+		case -1:
+			// error
+			printf("error\n");
+			fflush(stdout);
+			exit(5);
+			break;
+		default:
+			// parent process
+			printf("parent process, PID: %d\n", getpid());
+			fflush(stdout);
+			waitpid(spawnpid, &waitstatus, WNOHANG);
+			sleep(50);
+			break;
+		}
+		counter++;
 	}
 }

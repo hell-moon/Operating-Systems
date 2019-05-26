@@ -135,6 +135,10 @@ int main()
 					}
 					break;
 				default:
+					// determine if parent will wait for foreground child or NOT WAIT for background child
+					
+
+
 					waitpid(spawnpid, &childExitMethod, 0); // waits for it's child to terminate, store exit status in 2nd arg
 					// checking exit status of child
 					if (WIFEXITED(childExitMethod) != 0)

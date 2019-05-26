@@ -1,9 +1,0 @@
-#!/bin/bash
-set -m
-trap "echo 'triggering a child process termination with a silent ls\n'; ls > /dev/null" USR1
-trap "echo 'SIGCHILD received\n'; exit 0" CHLD
-
-while [ 1 -eq 1 ]
-do 
-	echo "nothing" > /dev/null
-done

@@ -1,3 +1,17 @@
+/*
+OREGON STATE UNIVERSITY, CS344 OPERATING SYSTEMS, SPRING 2019
+Title: Program 3, smallsh
+Description: This is the third programming assignment for CS344.  This program is a simple shell with three built-in commands: cd, status, and exit.  
+The shell reads in user input and if not one of these built-in commands, it will execute user commands passed into the program.  
+Input and output redirection is supported, "< 'filename'" will redirect stdin from that filename, "> 'filename'" will redirect stdout to that filename.
+The shell will execute commands by forking a child process from itself and then calling execvp(). 
+The shell itself ignores SIGINT signals, but passes it on to foreground children processes.  
+Background processes are supported, by ending the command with the option, '&'.
+A background mode can be toggled by sending a SIGTSTP signal to the shell.  This will toggle the ability to start a process in background mode(renders & useless).
+Author: Xiao Kuang
+Date: 5/26/2019
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -11,13 +25,54 @@
 char **getInputParsed(char **, char **, int *);
 char *replace_str(char *, char *, char *);
 
+// global variables for handling sigtstp
+int backgroundMode = 0; // default to 0, 1 disables running in background, handleSIGTSTP will toggle this value each time a SIGTSTP signal sent to shell
+
+void toggleBackgroundMode(int signo)
+{
+	if (backgroundMode == 0)
+	{
+		backgroundMode = 1;
+		printf("Entering foreground-only mode (& is now ignored)\n:");
+		fflush(stdout);
+	}
+	else
+	{
+		backgroundMode = 0;
+		printf("Exiting foreground-only mode\n:");
+		fflush(stdout);
+	}
+}
+
 int main()
 {
+
 	int foregroundExitStatus = 0; // default to 0, set exit value if exited normally, or set termination signal
 	int backgroundExitStatus = 0; // default to 0, set background exit value for printing
 	int howExited = 0;			  // default to 0, set to 0 if exited normally, 1 if terminated
-	int backgroundPIDS[100];
-	int pidCounter = 0;
+
+	// set up signal set to ignore SIGINT
+	sigset_t set_SIGINT;
+	sigemptyset(&set_SIGINT);
+	sigaddset(&set_SIGINT, SIGINT);
+
+	// set up signal set with SIGTSTP
+	sigset_t set_SIGTSTP;
+	sigemptyset(&set_SIGTSTP);
+	sigaddset(&set_SIGTSTP, SIGTSTP);
+
+	// set up to ignore ctrl-c
+	struct sigaction act_SIGINT;
+	memset(&act_SIGINT, '\0', sizeof(act_SIGINT));
+	act_SIGINT.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &act_SIGINT, NULL);
+
+	struct sigaction act_SIGTSTP;
+	memset(&act_SIGTSTP, '\0', sizeof(act_SIGTSTP));
+	act_SIGTSTP.sa_handler = toggleBackgroundMode;
+	act_SIGTSTP.sa_flags = SA_RESTART;
+	sigaction(SIGTSTP, &act_SIGTSTP, NULL);
+
 	while (1) // infinite loop, will exit by typing 'exit' in prompt
 	{
 
@@ -43,29 +98,29 @@ int main()
 			// check if input was a built - in shell command : cd, status, exit int idx = 0;
 			if (strcmp(parsedString[0], "cd") == 0)
 			{
-				printf("the current working directory is: %s\n", getcwd(dirName, 0));
-				fflush(stdout);
+				// printf("the current working directory is: %s\n", getcwd(dirName, 0));
+				// fflush(stdout);
 
 				// if no path argument passed, then change directory to path in HOME environment variable
 				if (parsedString[1] == NULL)
 				{
 					chdir(getenv("HOME"));
-					printf("the current working directory is: %s\n", getcwd(dirName, 0));
-					fflush(stdout);
+					// printf("the current working directory is: %s\n", getcwd(dirName, 0));
+					// fflush(stdout);
 				}
 				else
 				{
 					chdir(parsedString[1]);
-					printf("the current working directory is: %s\n", getcwd(dirName, 0));
-					fflush(stdout);
+					// printf("the current working directory is: %s\n", getcwd(dirName, 0));
+					// fflush(stdout);
 				}
-				printf("cd was entered\n");
-				fflush(stdout); // test print
+				// printf("cd was entered\n");
+				// fflush(stdout); // test print
 			}
 			else if (strcmp(parsedString[0], "exit") == 0)
 			{
-				printf("exit was entered\n");
-				fflush(stdout); // test print
+				// printf("exit was entered\n");
+				// fflush(stdout); // test print
 				exit(0);
 				break;
 			}
@@ -170,6 +225,13 @@ int main()
 							}
 						}
 					}
+					// if foreground command, allow SIGINT to terminate
+					if (backgroundFlag == 0)
+					{
+						sigprocmask(SIG_UNBLOCK, &set_SIGINT, NULL);
+						// block SIGTSTP during foreground
+						sigprocmask(SIG_SETMASK, &set_SIGTSTP, NULL);
+					}
 					// exec here
 					if (execvp(parsedString[0], parsedString) == -1)
 					{
@@ -184,9 +246,44 @@ int main()
 
 				default:
 					// ***********************START OF PARENT PROCESS******************************************
-
-					// determine if parent will wait for foreground child or NOT WAIT for background child
-					if (backgroundFlag == 0) // backgrond flag NOT SET, wait for foreground child
+					// if background mode is 1, disable running in background
+					if (backgroundMode == 0)
+					{
+						// determine if parent will wait for foreground child or NOT WAIT for background child
+						if (backgroundFlag == 0) // backgrond flag NOT SET, wait for foreground child
+						{
+							spawnpid = waitpid(spawnpid, &childExitMethod, 0); // waits for it's child to terminate, store exit status in 2nd arg
+							if (spawnpid == -1)
+							{
+								printf("waitpid() error\n");
+								exit(1);
+								break;
+							}
+							// checking exit status of child
+							else
+							{
+								if (WIFEXITED(childExitMethod) != 0)
+								{ // child terminated normally, get exit value
+									foregroundExitStatus = WEXITSTATUS(childExitMethod);
+									howExited = 0;
+								}
+								else
+								{
+									// child terminated by signal
+									foregroundExitStatus = WTERMSIG(childExitMethod); // get termination signal
+									howExited = 1;									  // set status flag
+								}
+								break;
+							}
+						}
+						// background flag SET, don't wait for background child
+						else
+						{
+							printf("[bg]%d\n", spawnpid);
+							break;
+						}
+					}
+					else // background mode == 1, disable running in background regardless of &
 					{
 						spawnpid = waitpid(spawnpid, &childExitMethod, 0); // waits for it's child to terminate, store exit status in 2nd arg
 						if (spawnpid == -1)
@@ -212,23 +309,44 @@ int main()
 							break;
 						}
 					}
-					// background flag SET, don't wait for background child
-					else
-					{
-						spawnpid = waitpid(spawnpid, &childExitMethod, WNOHANG);
-						if (spawnpid == -1)
-						{
-							printf("waitpid() error\n");
-							exit(1);
-						}
-						break;
-					}
+
 					// ***********************END OF PARENT PROCESS********************************************
 				}
 			}
 			// free(userInput);
 			fflush(stdout);
 			free(parsedString);
+			free(inputFile);
+			free(outputFile);
+
+			// check if any process has completed, return immediately with 0 if none have
+			spawnpid = waitpid(-1, &childExitMethod, WNOHANG);
+			while (spawnpid > 0)
+			{
+				if (WIFEXITED(childExitMethod) != 0)
+				{ // child terminated normally, get exit value
+					backgroundExitStatus = WEXITSTATUS(childExitMethod);
+					howExited = 0;
+				}
+				else
+				{
+					// child terminated by signal
+					backgroundExitStatus = WTERMSIG(childExitMethod); // get termination signal
+					howExited = 1;
+				}
+
+				if (howExited == 0)
+				{ // exited normally, print exit value
+					printf("[bg]%d donezo, exit value %d\n", spawnpid, backgroundExitStatus);
+					fflush(stdout); // test print
+				}
+				if (howExited == 1)
+				{ // exited by termination, print termination signal
+					printf("[bg]%d donezo , termintion signal %d\n", spawnpid, backgroundExitStatus);
+					fflush(stdout); // test print
+				}
+				spawnpid = waitpid(-1, &childExitMethod, WNOHANG);
+			}
 		}
 	}
 
@@ -302,9 +420,18 @@ char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 			token = strtok(NULL, " ");
 		}
 		else if (strcmp(token, "&") == 0)
-		{						 // else if reached & at end of command
-			*backgroundFlag = 1; // child will check flag to see if process will be run in background
-			break;				 // & as a token will always be at end of command list, break from loop
+		{
+			// else if reached & at end of command
+			if ((token = strtok(NULL, " ")) == NULL)
+			{
+				*backgroundFlag = 1; // child will check flag to see if process will be run in background
+				break;				 // & as a token will always be at end of command list, break from loop
+			}
+			else
+			{
+				parsedString[counter] = "&";
+				counter++;
+			}
 		}
 		else
 		{
