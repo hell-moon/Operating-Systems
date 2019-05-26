@@ -1,0 +1,5 @@
+To compile, use:
+    gcc -g -o smallsh main.c
+
+From my testing, this program meets all requirements of the assignment and test script,
+thank you very much!
