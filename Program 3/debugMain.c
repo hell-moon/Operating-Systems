@@ -353,7 +353,9 @@ int main()
 	return 0;
 }
 
-// This function gets input from stdin, parses the string, and then returns an array of pointers with the separated arguments
+/* This function gets input from stdin, parses the string, and then returns an array of pointers with the separated arguments.
+
+*/
 char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 {
 	// getline test
@@ -366,6 +368,7 @@ char **getInputParsed(char **inputFile, char **outputFile, int *backgroundFlag)
 
 	if ((numCharRead = getline(&buffer, &buffer_size, stdin)) == -1) // read in line from user, check if read correctly
 	{
+		clearerr(stdin);
 		perror("error with getline");
 	}
 
@@ -467,10 +470,13 @@ char *replace_str(char *str, char *orig, char *rep)
 	static char buffer[4096];
 	char *p;
 
-	if (!(p = strstr(str, orig))) // Is 'orig' even in 'str'?
+	// Is 'orig' even in 'str'?
+	if (!(p = strstr(str, orig))){
 		return str;
-
-	strncpy(buffer, str, p - str); // Copy characters from 'str' start to 'orig' st$
+	}
+		
+	// Copy characters from 'str' start to 'orig' st$
+	strncpy(buffer, str, p - str);
 	buffer[p - str] = '\0';
 
 	sprintf(buffer + (p - str), "%s%s", rep, p + strlen(orig));
