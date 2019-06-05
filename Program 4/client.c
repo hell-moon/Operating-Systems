@@ -57,7 +57,7 @@ void sendfile(char *plaintextfile, int socketFD)
 			printf("CLIENT: WARNING: Not all data written to socket!\n");
 		sendCounter += charsWritten;
 	}
-	fclose(plaintext);
+//	fclose(plaintext);
 }
 
 int main(int argc, char *argv[])
