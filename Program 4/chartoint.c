@@ -50,10 +50,35 @@ void encodeMsg(char *msg, char *key)
 	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-	char msg[] = "THE RED GOOSE FLIES AT MIDNIGHT STOP";
-	char key[] = "EJV YHPHQIHCJ ZTXNPHQFCDI HLPFAIEKHRHMZMUFESUCKGQPNVUPZROFRTASAERYVNJI";
+	FILE *plaintext = fopen("plaintext4", "r");
+	FILE *keytext = fopen("key70000", "r");
+
+	char msg[70000] = {'\0'};
+	char key[70000] = {'\0'};
+
+	fseek(plaintext, 0, SEEK_END);
+	int length = ftell(plaintext);
+	// length--;
+	// reset file descriptor to beginning to read file
+	fseek(plaintext, 0, SEEK_SET);
+	if (msg)
+	{
+		fread(msg, 1, length, plaintext);
+	}
+	fclose(plaintext);
+	msg[length - 1] = '@';
+
+	if (key)
+	{
+		fread(key, 1, length, keytext);
+	}
+	fclose(keytext);
+	key[length - 1] = '@';
+
+	// char msg[] = "THE RED GOOSE FLIES AT MIDNIGHT STOP";
+	// char key[] = "EJV YHPHQIHCJ ZTXNPHQFCDI HLPFAIEKHRHMZMUFESUCKGQPNVUPZROFRTASAERYVNJI";
 
 	encodeMsg(msg, key);
 
