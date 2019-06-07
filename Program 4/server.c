@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 
 	sendMsg(completeMessage, establishedConnectionFD);
 
-	// printf("%s", completeMessage);
+	printf("%s", completeMessage);
 
 	// Send a Success message back to the client
 	// charsRead = send(establishedConnectionFD, completeMessage, 39, 0); // Send success back
