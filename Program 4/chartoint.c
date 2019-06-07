@@ -42,6 +42,10 @@ void encodeMsg(char *msg, char *key)
 
 	for (idx = 0; idx < length; idx++)
 	{
+		if (msg[idx] == '@')
+		{
+			break;
+		}
 		charInt = charToInt(msg[idx]);
 		keyInt = charToInt(key[idx]);
 		msg[idx] = ((charInt + keyInt) % 27);
@@ -74,7 +78,7 @@ int main(int argc, char *argv[])
 		fread(key, 1, length, keytext);
 	}
 	fclose(keytext);
-	key[length - 1] = '@';
+	//	key[length - 1] = '@';
 
 	// char msg[] = "THE RED GOOSE FLIES AT MIDNIGHT STOP";
 	// char key[] = "EJV YHPHQIHCJ ZTXNPHQFCDI HLPFAIEKHRHMZMUFESUCKGQPNVUPZROFRTASAERYVNJI";
