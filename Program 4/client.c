@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/ioctl.h>
-
+//refactor
 #define h_addr h_addr_list[0]
 
 void error(const char *msg)
