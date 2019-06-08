@@ -45,9 +45,6 @@ void sendfile(char *plaintextfile, int socketFD)
 		// buffer[length] = '@';
 	}
 
-	int sendCounter = 0;
-	while (sendCounter < length)
-	{
 		// Send message to server
 		charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
 		// printf("chars written: %d", charsWritten);
@@ -55,8 +52,6 @@ void sendfile(char *plaintextfile, int socketFD)
 			error("CLIENT: ERROR writing to socket");
 		if (charsWritten < strlen(buffer))
 			printf("CLIENT: WARNING: Not all data written to socket!\n");
-		sendCounter += charsWritten;
-	}
 //	fclose(plaintext);
 }
 

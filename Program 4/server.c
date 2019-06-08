@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 		error("ERROR on accept");
 
 	// clear buffer before read
-	bzero(buffer, 70000);
+	memset(buffer, '\0', 70000);
 	// authenticate with client, make sure it is opt_enc
 	if((charsRead = recv(establishedConnectionFD, buffer, 1, 0)) < 1){
 		error("Error receiving authentication from client\n");
@@ -184,11 +184,13 @@ int main(int argc, char *argv[])
 	position = endMessagePtr - key;
 	key[position] = '\0';
 
+	printf(" key received from client: %s", key);
+
 	encodeMsg(completeMessage, key);
 
 	sendMsg(completeMessage, establishedConnectionFD);
 
-	printf("%s", completeMessage);
+	//printf("%s", completeMessage);
 
 	// Send a Success message back to the client
 	// charsRead = send(establishedConnectionFD, completeMessage, 39, 0); // Send success back
