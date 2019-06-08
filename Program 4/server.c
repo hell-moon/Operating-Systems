@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	position = endMessagePtr - key;
 	key[position] = '\0';
 
-	printf(" key received from client: %s", key);
+	printf("message received from client: %s\n\n\n\nkey received from client: %s", completeMessage, key);
 
 	encodeMsg(completeMessage, key);
 
