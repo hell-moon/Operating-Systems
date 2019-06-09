@@ -41,18 +41,18 @@ void sendfile(char *plaintextfile, int socketFD)
 			fread(buffer, 1, length, plaintext);
 		}
 		fclose(plaintext);
-		buffer[length - 1] = '@';
+		buffer[length - 1] = '@';	//replace '/n' with '@'
 		// buffer[length] = '@';
 	}
 
-		// Send message to server
-		charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
-		// printf("chars written: %d", charsWritten);
-		if (charsWritten < 0)
-			error("CLIENT: ERROR writing to socket");
-		if (charsWritten < strlen(buffer))
-			printf("CLIENT: WARNING: Not all data written to socket!\n");
-//	fclose(plaintext);
+	// Send message to server
+	charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
+	// printf("chars written: %d", charsWritten);
+	if (charsWritten < 0)
+		error("CLIENT: ERROR writing to socket");
+	if (charsWritten < strlen(buffer))
+		printf("CLIENT: WARNING: Not all data written to socket!\n");
+	//	fclose(plaintext);
 }
 
 int main(int argc, char *argv[])
@@ -120,8 +120,9 @@ int main(int argc, char *argv[])
 		{
 			if (buffer[0] == authenticate[0])
 			{
-			
-			}else{
+			}
+			else
+			{
 				fprintf(stderr, "Can't authenticate server, port %d", portNumber);
 				exit(2);
 			}
@@ -138,33 +139,35 @@ int main(int argc, char *argv[])
 	char *endMessagePtr = NULL;
 	char cyphertext[70000] = {'\0'};
 
-	while ((endMessagePtr = strstr(cyphertext, "@")) == NULL)
-	{
-		memset(buffer, '\0', 70000);
-		charsRead = recv(socketFD, buffer, 70000, 0); // Read the client's message from the socket
-		strncat(cyphertext, buffer, charsRead);
-		// printf("chars read plaintxt: %d", charsRead);
-		if (charsRead < 1)
-		{
-			if (charsRead == 0)
-			{
-				error("charsRead: 0\n");
-			}
-			else
-			{
-				error("poopERROR reading from socket");
-			}
-		}
-	}
+	// while ((endMessagePtr = strstr(cyphertext, "@")) == NULL)
+	// {
+	// 	memset(buffer, '\0', 70000);
+	// 	charsRead = recv(socketFD, buffer, 70000, 0); // Read the client's message from the socket
+	// 	strncat(cyphertext, buffer, charsRead);
+	// 	// printf("chars read plaintxt: %d", charsRead);
+	// 	if (charsRead < 1)
+	// 	{
+	// 		if (charsRead == 0)
+	// 		{
+	// 			error("charsRead: 0\n");
+	// 		}
+	// 		else
+	// 		{
+	// 			error("poopERROR reading from socket");
+	// 		}
+	// 	}
+	// }
+
+
 	// replace '@' at end of cyphertext received with '\0'
-	int position = endMessagePtr - cyphertext;
-	cyphertext[position] = '\0';
+	// int position = endMessagePtr - cyphertext;
+	// cyphertext[position] = '\0';
 
 	// charsRead = recv(socketFD, buffer, length - 2, 0); // Read data from the socket, leaving \0 at end
 	// if (charsRead < 0)
 	// 	error("CLIENT: ERROR reading from socket");
 
-	printf("%s\n", cyphertext);
+	//printf("%s\n", cyphertext);
 
 	close(socketFD); // Close the socket
 	// free(buffer);
