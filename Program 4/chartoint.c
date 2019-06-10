@@ -33,7 +33,7 @@ char intToChar(int n)
 	For each character in message, perform modular addition with respective character in key.  
 	Replace that element in message with the encoded character, msg will hold cyphertext
 */
-void encodeMsg(char *msg, char *key)
+void decodeMsg(char *msg, char *key)
 {
 	int idx, jdx = 0;
 	int charInt;
@@ -42,20 +42,16 @@ void encodeMsg(char *msg, char *key)
 
 	for (idx = 0; idx < length; idx++)
 	{
-		if (msg[idx] == '@')
-		{
-			break;
-		}
 		charInt = charToInt(msg[idx]);
 		keyInt = charToInt(key[idx]);
-		msg[idx] = ((charInt + keyInt) % 27);
+		msg[idx] = ((charInt - keyInt) % 27);
 		msg[idx] = intToChar(msg[idx]);
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	FILE *plaintext = fopen("plaintext4", "r");
+	FILE *plaintext = fopen("clientCypher", "r");
 	FILE *keytext = fopen("key70000", "r");
 
 	char msg[70000] = {'\0'};
@@ -71,7 +67,7 @@ int main(int argc, char *argv[])
 		fread(msg, 1, length, plaintext);
 	}
 	fclose(plaintext);
-	msg[length - 1] = '@';
+	msg[length - 1] = '\0';
 
 	if (key)
 	{
@@ -83,7 +79,7 @@ int main(int argc, char *argv[])
 	// char msg[] = "THE RED GOOSE FLIES AT MIDNIGHT STOP";
 	// char key[] = "EJV YHPHQIHCJ ZTXNPHQFCDI HLPFAIEKHRHMZMUFESUCKGQPNVUPZROFRTASAERYVNJI";
 
-	encodeMsg(msg, key);
+	decodeMsg(msg, key);
 
 	printf("%s", msg);
 

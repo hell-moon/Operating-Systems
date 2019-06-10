@@ -41,8 +41,8 @@ void sendfile(char *plaintextfile, int socketFD)
 			fread(buffer, 1, length, plaintext);
 		}
 		fclose(plaintext);
-		buffer[length - 1] = '@';	//replace '/n' with '@'
-		// buffer[length] = '@';
+		buffer[length - 1] = '@'; //replace '/n' with '@'
+								  // buffer[length] = '@';
 	}
 
 	// Send message to server
@@ -157,7 +157,6 @@ int main(int argc, char *argv[])
 	// 		}
 	// 	}
 	// }
-
 
 	// replace '@' at end of cyphertext received with '\0'
 	// int position = endMessagePtr - cyphertext;
